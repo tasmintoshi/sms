@@ -16,8 +16,19 @@ const searchInput = document.getElementById("search-input");
 const departmentFilter = document.getElementById("department-filter");
 const resultCount = document.getElementById("result-count");
 
+const statTotal = document.getElementById("stat-total");
+const statDepartments = document.getElementById("stat-departments");
+const statLargest = document.getElementById("stat-largest");
+const statLargestLabel = document.getElementById("stat-largest-label");
+
+const sortButtons = document.querySelectorAll(".sort-button");
+
 let editingStudentId = null;
 let allStudents = [];
+
+// Newest students first, matching the order from the API
+let sortKey = "id";
+let sortDirection = "descending";
 
 
 // Show success or error message
@@ -48,6 +59,7 @@ async function loadStudents() {
     try {
         allStudents = await apiRequest("/api/students");
 
+        updateStats();
         updateDepartmentOptions();
         applyFilters();
 
@@ -65,6 +77,40 @@ async function loadStudents() {
 
         showMessage(error.message, "error");
     }
+}
+
+
+// Show totals in the dashboard banner
+function updateStats() {
+    const departmentCounts = {};
+
+    allStudents.forEach(function (student) {
+        departmentCounts[student.department] =
+            (departmentCounts[student.department] || 0) + 1;
+    });
+
+    const departments = Object.keys(departmentCounts);
+
+    statTotal.textContent = allStudents.length;
+    statDepartments.textContent = departments.length;
+
+    if (departments.length === 0) {
+        statLargest.textContent = "-";
+        statLargest.title = "";
+        statLargestLabel.textContent = "Largest Department";
+        return;
+    }
+
+    const largest = departments.reduce(function (a, b) {
+        return departmentCounts[b] > departmentCounts[a] ? b : a;
+    });
+
+    const count = departmentCounts[largest];
+
+    statLargest.textContent = largest;
+    statLargest.title = largest;
+    statLargestLabel.textContent =
+        `Largest Department (${count} ${count === 1 ? "student" : "students"})`;
 }
 
 
@@ -107,10 +153,42 @@ function applyFilters() {
         return matchesSearch && matchesDepartment;
     });
 
+    sortStudents(filteredStudents);
+
     resultCount.textContent =
         `Showing ${filteredStudents.length} of ${allStudents.length} students`;
 
     renderStudents(filteredStudents);
+}
+
+
+// Sort students by the selected column
+function sortStudents(students) {
+    const direction = sortDirection === "ascending" ? 1 : -1;
+
+    students.sort(function (a, b) {
+        if (sortKey === "id") {
+            return (a.id - b.id) * direction;
+        }
+
+        return a[sortKey].localeCompare(b[sortKey], undefined, {
+            sensitivity: "base"
+        }) * direction;
+    });
+}
+
+
+// Show which column is sorted and in which direction
+function updateSortHeaders() {
+    sortButtons.forEach(function (button) {
+        const header = button.closest("th");
+
+        if (button.dataset.sort === sortKey) {
+            header.setAttribute("aria-sort", sortDirection);
+        } else {
+            header.removeAttribute("aria-sort");
+        }
+    });
 }
 
 
@@ -313,6 +391,54 @@ cancelButton.addEventListener("click", function () {
 // Filter the table as the user types or picks a department
 searchInput.addEventListener("input", applyFilters);
 departmentFilter.addEventListener("change", applyFilters);
+
+
+// Sort the table when a column header is clicked
+sortButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+        if (button.dataset.sort === sortKey) {
+            sortDirection =
+                sortDirection === "ascending" ? "descending" : "ascending";
+        } else {
+            sortKey = button.dataset.sort;
+            sortDirection = "ascending";
+        }
+
+        updateSortHeaders();
+        applyFilters();
+    });
+});
+
+
+// Dark mode toggle
+const themeToggle = document.getElementById("theme-toggle");
+
+function updateThemeButton() {
+    const isDark = document.documentElement.dataset.theme === "dark";
+
+    themeToggle.textContent = isDark ? "Light Mode" : "Dark Mode";
+    themeToggle.setAttribute(
+        "aria-label",
+        isDark ? "Switch to light mode" : "Switch to dark mode"
+    );
+}
+
+themeToggle.addEventListener("click", function () {
+    const newTheme =
+        document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+
+    document.documentElement.dataset.theme = newTheme;
+
+    try {
+        localStorage.setItem("theme", newTheme);
+    } catch (error) {
+        // Storage can be blocked; the theme still changes for this visit
+    }
+
+    updateThemeButton();
+});
+
+updateThemeButton();
 
 
 // Load students when the website opens
