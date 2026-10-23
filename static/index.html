@@ -8,6 +8,27 @@
     <title>Student Management System</title>
 
     <link rel="stylesheet" href="/style.css">
+
+    <!-- Apply the saved or system theme before the page draws, to avoid a flash -->
+    <script>
+        (function () {
+            let theme = null;
+
+            try {
+                theme = localStorage.getItem("theme");
+            } catch (error) {
+                // Storage can be blocked; fall back to the system setting
+            }
+
+            if (theme !== "light" && theme !== "dark") {
+                theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+                    ? "dark"
+                    : "light";
+            }
+
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
 </head>
 
 <body>
@@ -15,6 +36,15 @@
     <div class="container">
 
         <header>
+            <button
+                type="button"
+                id="theme-toggle"
+                class="theme-toggle"
+                aria-label="Switch to dark mode"
+            >
+                Dark Mode
+            </button>
+
             <h1>Student Management System</h1>
             <p>Manage your student records easily.</p>
         </header>
@@ -23,6 +53,26 @@
         <section class="dashboard-heading">
             <h2>Student Dashboard</h2>
             <p>Add, edit, and review student records in one place.</p>
+
+            <!-- Dashboard Statistics -->
+            <div class="stats">
+
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-total">0</span>
+                    <span class="stat-label">Total Students</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-departments">0</span>
+                    <span class="stat-label">Departments</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-largest">-</span>
+                    <span class="stat-label" id="stat-largest-label">Largest Department</span>
+                </div>
+
+            </div>
         </section>
 
         <!-- Student Form -->
@@ -105,10 +155,26 @@
 
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Department</th>
+                            <th aria-sort="descending">
+                                <button type="button" class="sort-button" data-sort="id">
+                                    ID <span class="sort-arrow" aria-hidden="true"></span>
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" class="sort-button" data-sort="name">
+                                    Name <span class="sort-arrow" aria-hidden="true"></span>
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" class="sort-button" data-sort="email">
+                                    Email <span class="sort-arrow" aria-hidden="true"></span>
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" class="sort-button" data-sort="department">
+                                    Department <span class="sort-arrow" aria-hidden="true"></span>
+                                </button>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
