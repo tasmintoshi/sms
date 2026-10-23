@@ -31,6 +31,25 @@ header p {
     color: #666;
 }
 
+/* Dashboard Heading */
+.dashboard-heading {
+    background-color: #234e70;
+    color: white;
+    padding: 20px 25px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+}
+
+.dashboard-heading h2 {
+    color: white;
+    margin-bottom: 6px;
+}
+
+.dashboard-heading p {
+    margin: 0;
+    color: #d6e4f0;
+}
+
 /* Form and Table Sections */
 .form-section,
 .table-section {
@@ -158,6 +177,7 @@ tbody tr:hover {
         grid-column: auto;
     }
 
+    .dashboard-heading,
     .form-section,
     .table-section {
         padding: 16px;
