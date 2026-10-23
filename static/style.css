@@ -139,6 +139,33 @@ button:disabled {
     color: #d32f2f;
 }
 
+/* Search and Filter */
+.filter-bar {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    background-color: white;
+}
+
+select:focus {
+    outline: 2px solid #8bb9e8;
+    border-color: #3978b8;
+}
+
+#result-count {
+    margin: 12px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
 /* Student Table */
 .table-wrapper {
     width: 100%;
@@ -169,7 +196,8 @@ tbody tr:hover {
 
 /* Responsive Design */
 @media (max-width: 700px) {
-    #student-form {
+    #student-form,
+    .filter-bar {
         grid-template-columns: 1fr;
     }
 

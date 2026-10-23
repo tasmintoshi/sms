@@ -81,6 +81,24 @@
 
             <h2>Student Records</h2>
 
+            <!-- Search and Filter -->
+            <div class="filter-bar">
+
+                <input
+                    type="search"
+                    id="search-input"
+                    placeholder="Search by name or email"
+                    aria-label="Search students"
+                >
+
+                <select id="department-filter" aria-label="Filter by department">
+                    <option value="">All Departments</option>
+                </select>
+
+            </div>
+
+            <p id="result-count"></p>
+
             <div class="table-wrapper">
 
                 <table>

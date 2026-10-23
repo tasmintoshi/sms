@@ -12,7 +12,12 @@ const formTitle = document.getElementById("form-title");
 const submitButton = document.getElementById("submit-button");
 const cancelButton = document.getElementById("cancel-button");
 
+const searchInput = document.getElementById("search-input");
+const departmentFilter = document.getElementById("department-filter");
+const resultCount = document.getElementById("result-count");
+
 let editingStudentId = null;
+let allStudents = [];
 
 
 // Show success or error message
@@ -41,11 +46,14 @@ async function loadStudents() {
     tableBody.replaceChildren();
 
     try {
-        const students = await apiRequest("/api/students");
+        allStudents = await apiRequest("/api/students");
 
-        renderStudents(students);
+        updateDepartmentOptions();
+        applyFilters();
 
     } catch (error) {
+        resultCount.textContent = "";
+
         const row = document.createElement("tr");
         const cell = document.createElement("td");
 
@@ -60,6 +68,52 @@ async function loadStudents() {
 }
 
 
+// Fill the department dropdown with departments from the records
+function updateDepartmentOptions() {
+    const selected = departmentFilter.value;
+
+    const departments = [...new Set(
+        allStudents.map(function (student) {
+            return student.department;
+        })
+    )].sort(function (a, b) {
+        return a.localeCompare(b);
+    });
+
+    departmentFilter.replaceChildren(new Option("All Departments", ""));
+
+    departments.forEach(function (department) {
+        departmentFilter.appendChild(new Option(department, department));
+    });
+
+    // Keep the current selection if that department still exists
+    departmentFilter.value = departments.includes(selected) ? selected : "";
+}
+
+
+// Show only the students that match the search and department filter
+function applyFilters() {
+    const searchText = searchInput.value.trim().toLowerCase();
+    const department = departmentFilter.value;
+
+    const filteredStudents = allStudents.filter(function (student) {
+        const matchesSearch =
+            student.name.toLowerCase().includes(searchText) ||
+            student.email.toLowerCase().includes(searchText);
+
+        const matchesDepartment =
+            department === "" || student.department === department;
+
+        return matchesSearch && matchesDepartment;
+    });
+
+    resultCount.textContent =
+        `Showing ${filteredStudents.length} of ${allStudents.length} students`;
+
+    renderStudents(filteredStudents);
+}
+
+
 // Display students in the table
 function renderStudents(students) {
     tableBody.replaceChildren();
@@ -69,7 +123,9 @@ function renderStudents(students) {
         const cell = document.createElement("td");
 
         cell.colSpan = 5;
-        cell.textContent = "No students found. Add your first student.";
+        cell.textContent = allStudents.length === 0
+            ? "No students found. Add your first student."
+            : "No students match your search.";
 
         row.appendChild(cell);
         tableBody.appendChild(row);
@@ -252,6 +308,11 @@ cancelButton.addEventListener("click", function () {
     resetForm();
     showMessage("");
 });
+
+
+// Filter the table as the user types or picks a department
+searchInput.addEventListener("input", applyFilters);
+departmentFilter.addEventListener("change", applyFilters);
 
 
 // Load students when the website opens
